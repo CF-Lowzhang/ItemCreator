@@ -1,0 +1,531 @@
+
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#11161d">
+<title>ox_inventory 道具建立器</title>
+<style>
+:root{font-family:Inter,"Segoe UI","Noto Sans TC",sans-serif;color:#e8edf4;background:#11161d;font-synthesis:none}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#27334a 0,transparent 42%),#11161d}
+main{width:min(1280px,calc(100% - 32px));margin:auto;padding:24px 0 36px}
+header{margin-bottom:16px}
+.eyebrow{font-size:10px;letter-spacing:.16em;color:#93a7c0}
+h1{margin:5px 0;font-size:25px;letter-spacing:-.04em}
+.intro{margin:0;color:#98a5b5;font-size:12px;line-height:1.5}
+.panel{padding:17px;border:1px solid #2b3542;border-radius:12px;background:#171d25}
+.section-title{margin:0 0 12px;color:#e3ebf5;font-size:14px}
+
+/* 道具資料 */
+.fields{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px;align-items:end}
+.field{display:grid;align-content:start;gap:5px;min-width:0;color:#aab8c8;font-size:11px}
+.field input,.field textarea,.field select,.status-max input{
+  width:100%;min-width:0;border:1px solid #3c4959;
+  background:#111820;color:#f0f4f8;
+  padding:7px 9px;border-radius:6px;font:inherit;font-size:12px
+}
+.field textarea{resize:vertical}
+.item-name{grid-column:span 3}
+.item-label{grid-column:span 3}
+.item-weight{grid-column:span 2}
+.item-consume{grid-column:span 2}
+.item-time{grid-column:span 2}
+.item-description,.item-goal{grid-column:1/-1}
+
+/* 折疊區塊 */
+.collapse-panel{
+  margin-top:10px;border:1px solid #303e4d;
+  border-radius:9px;background:#151d26;overflow:hidden
+}
+.collapse-panel summary{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 13px;color:#dce9f7;
+  font-size:13px;font-weight:600;cursor:pointer;
+  list-style:none;user-select:none
+}
+.collapse-panel summary::-webkit-details-marker{display:none}
+.collapse-panel summary:hover{background:#202b38}
+.collapse-panel summary::before{
+  content:"";width:7px;height:7px;flex-shrink:0;
+  border-right:2px solid #92a8c0;
+  border-bottom:2px solid #92a8c0;
+  transform:rotate(-45deg);transition:transform .15s
+}
+.collapse-panel[open] summary::before{transform:rotate(45deg)}
+.collapse-hint{color:#8493a4;font-size:11px;font-weight:400}
+.collapse-content{padding:12px;border-top:1px solid #303e4d}
+
+/* 額外調整 */
+.extra-fields{
+  display:grid;
+  grid-template-columns:repeat(12,minmax(0,1fr));
+  align-items:end;
+  gap:10px
+}
+.item-stack,.item-close{grid-column:span 2}
+.item-animation{grid-column:span 3}
+.item-event{grid-column:span 3}
+
+/* 單選式按鈕：可堆疊、道具欄、動畫 */
+.choice-options{
+  display:inline-flex;
+  align-items:stretch;
+  width:max-content;
+  max-width:100%;
+  border:1px solid #3c4959;
+  border-radius:6px;
+  overflow:hidden;
+  background:#111820
+}
+.choice-options label{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:54px;
+  padding:8px 10px;
+  color:#b9c9d9;
+  font-size:11px;
+  cursor:pointer;
+  white-space:nowrap
+}
+.choice-options label+label{border-left:1px solid #3c4959}
+.choice-options input{
+  position:absolute;
+  opacity:0;
+  width:1px;
+  height:1px
+}
+.choice-options label:has(input:checked){
+  background:#25483f;
+  color:#c9f5e6;
+  font-weight:600
+}
+.choice-options label:focus-within{
+  outline:2px solid #69b79a;
+  outline-offset:-2px
+}
+
+/* 狀態變化 */
+.status-heading{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:12px;
+  flex-wrap:wrap
+}
+.status-max{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#aab8c8;
+  font-size:11px;
+  white-space:nowrap
+}
+.status-max input{width:115px}
+.status-fields{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  gap:9px;
+  margin-top:11px
+}
+.status-fields .field input{max-width:100%}
+
+/* 輸出 */
+.outputs{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+  margin-top:15px
+}
+.outputs.has-client{grid-template-columns:repeat(2,minmax(0,1fr))}
+.output{min-width:0}
+.output[hidden]{display:none}
+.output-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  min-height:35px;
+  margin-bottom:6px;
+  color:#dce9f7;
+  font-size:12px
+}
+.actions{display:flex;align-items:center;gap:6px}
+.format-toggle{
+  display:flex;
+  gap:3px;
+  padding:3px;
+  border:1px solid #354252;
+  border-radius:7px;
+  background:#111820
+}
+.button{
+  border:1px solid #426c62;
+  border-radius:6px;
+  background:#16332e;
+  color:#a8ead2;
+  padding:6px 9px;
+  font:inherit;
+  font-size:11px;
+  white-space:nowrap;
+  cursor:pointer
+}
+.format-toggle button{
+  border:0;
+  background:transparent;
+  color:#9daabd;
+  padding:5px 7px
+}
+.format-toggle button[aria-pressed="true"]{
+  border-radius:5px;
+  background:#2a4057;
+  color:#eff6ff
+}
+.button:hover{filter:brightness(1.15)}
+.output textarea{
+  display:block;
+  width:100%;
+  min-height:230px;
+  resize:vertical;
+  border:1px solid #303e4d;
+  border-radius:8px;
+  background:#10151b;
+  color:#dce9f7;
+  padding:11px;
+  font:12px/1.6 ui-monospace,Consolas,monospace;
+  white-space:pre;
+  tab-size:4
+}
+.feedback{min-height:17px;margin-top:7px;color:#9be0c5;font-size:11px}
+.footnote{
+  margin:9px 2px 0;
+  color:#78889b;
+  font-size:11px;
+  line-height:1.5
+}
+
+/* RWD */
+@media(max-width:1000px){
+  .item-name,.item-label{grid-column:span 4}
+  .item-weight,.item-consume,.item-time{grid-column:span 4}
+  .item-stack,.item-close{grid-column:span 3}
+  .item-animation,.item-event{grid-column:span 6}
+  .status-fields{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  .item-name,.item-label,.item-weight,.item-consume,.item-time{
+    grid-column:span 6
+  }
+  .item-stack,.item-close{grid-column:span 3}
+  .item-animation,.item-event{grid-column:span 6}
+  .status-fields{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .outputs.has-client{grid-template-columns:1fr}
+}
+@media(max-width:520px){
+  main{width:calc(100% - 20px);padding-top:18px}
+  .panel{padding:12px}
+  .fields{gap:9px}
+  .item-name,.item-label,.item-weight,.item-consume,.item-time{
+    grid-column:1/-1
+  }
+  .item-stack,.item-close{grid-column:span 6}
+  .item-animation,.item-event{grid-column:1/-1}
+  .status-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .status-max{width:100%;justify-content:space-between}
+  .status-max input{width:110px}
+  .output-head{align-items:flex-start;flex-direction:column}
+  .actions{width:100%;justify-content:space-between}
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">OX INVENTORY TOOL</div>
+    <h1>道具建立器</h1>
+    <p class="intro">填好道具資料，產生讓道具系統可以處理的 <code>items.lua</code> 和 <code>client.lua</code> 相關程式，並且貼給「相關團隊進行處理」</p>
+  </header>
+
+  <section class="panel" aria-labelledby="itemFieldsTitle">
+    <h2 class="section-title" id="itemFieldsTitle">道具資料</h2>
+
+    <form id="itemForm" autocomplete="off">
+      <div class="fields">
+
+        <!-- 第一行 -->
+        <label class="field item-name">道具名稱（name）
+          <input name="name" required pattern="[A-Za-z0-9_-]+" placeholder="cft0001-1">
+        </label>
+
+        <label class="field item-label">顯示名稱（label）
+          <input name="label" required placeholder="豐饒牌精品嫩草">
+        </label>
+
+        <label class="field item-weight">重量（weight）
+          <input name="weight" type="number" min="0" step="any" value="0">
+        </label>
+
+        <label class="field item-consume">消耗量（consume）
+          <input name="consume" type="number" min="0" step="any" value="0">
+        </label>
+
+        <label class="field item-time">使用時間（usetime，秒）
+          <input name="usetime" type="number" min="0" step="any" value="0">
+        </label>
+
+        <!-- 第二行 -->
+        <label class="field item-description">描述（description）
+          <textarea name="description" rows="2" placeholder="道具描述"></textarea>
+        </label>
+
+        <!-- 第三行 -->
+        <label class="field item-goal">腳本希望達到的事情
+          <textarea name="goal" rows="2" placeholder="輸入內容後，自動產生 client.lua 使用登記"></textarea>
+        </label>
+      </div>
+
+      <!-- 額外調整：預設收合 -->
+      <details class="collapse-panel">
+        <summary>
+          額外調整
+          <span class="collapse-hint">堆疊、道具欄、使用動畫與 Client Event</span>
+        </summary>
+
+        <div class="collapse-content">
+          <div class="extra-fields">
+
+            <div class="field item-stack">
+              <span>可堆疊（stack）</span>
+              <div class="choice-options" role="radiogroup" aria-label="可堆疊">
+                <label><input type="radio" name="stack" value="true" checked>是</label>
+                <label><input type="radio" name="stack" value="false">否</label>
+              </div>
+            </div>
+
+            <div class="field item-close">
+              <span>使用後關閉道具欄（close）</span>
+              <div class="choice-options" role="radiogroup" aria-label="使用後關閉道具欄">
+                <label><input type="radio" name="close" value="true" checked>是</label>
+                <label><input type="radio" name="close" value="false">否</label>
+              </div>
+            </div>
+
+            <div class="field item-animation">
+              <span>使用動畫（anim）</span>
+              <div class="choice-options" role="radiogroup" aria-label="使用動畫">
+                <label><input type="radio" name="anim" value="" checked>無</label>
+                <label><input type="radio" name="anim" value="eating">eating</label>
+                <label><input type="radio" name="anim" value="drinking">drinking</label>
+              </div>
+            </div>
+
+            <label class="field item-event">Client Event（可留空）
+              <input name="event" placeholder="例如 CF_VehicleKey:LockUnlock">
+            </label>
+
+          </div>
+        </div>
+      </details>
+
+      <!-- 狀態變化：預設收合 -->
+      <details class="collapse-panel">
+        <summary>
+          狀態變化
+          <span class="collapse-hint">輸入 0–100%；留空代表不輸出該狀態。</span>
+        </summary>
+
+        <div class="collapse-content">
+          <div class="status-heading">
+            <label class="status-max">
+              狀態值最大值
+              <input name="statusMax" type="number" min="0" step="any" value="1000000">
+            </label>
+          </div>
+
+          <div class="status-fields">
+            <label class="field">飢餓（Hunger，%）<input name="hunger" type="number" min="0" max="100" step="any" placeholder="0–100"></label>
+            <label class="field">口渴（Thirst，%）<input name="thirst" type="number" min="0" max="100" step="any" placeholder="0–100"></label>
+            <label class="field">醉酒（Drunk，%）<input name="drunk" type="number" min="0" max="100" step="any" placeholder="0–100"></label>
+            <label class="field">壓力（Stress，%）<input name="stress" type="number" min="0" max="100" step="any" placeholder="0–100"></label>
+            <label class="field">結晶（Crystal，%）<input name="crystal" type="number" min="0" max="100" step="any" placeholder="0–100"></label>
+            <label class="field">中毒（Poison，%）<input name="poison" type="number" min="0" max="100" step="any" placeholder="0–100"></label>
+            <label class="field">中毒（Bug，%）<input name="bug" type="number" min="0" max="100" step="any" placeholder="0–100"></label>
+            <label class="field">火元素（Fire，%）<input name="fire" type="number" min="0" max="100" step="any" placeholder="0–100"></label>
+            <label class="field">水元素（Water，%）<input name="water" type="number" min="0" max="100" step="any" placeholder="0–100"></label>
+            <label class="field">土元素（Stone，%）<input name="stone" type="number" min="0" max="100" step="any" placeholder="0–100"></label>
+            <label class="field">風元素（Wind，%）<input name="wind" type="number" min="0" max="100" step="any" placeholder="0–100"></label>
+            <label class="field">能量（Energy，%）<input name="energy" type="number" min="0" max="100" step="any" placeholder="0–100"></label>
+          </div>
+        </div>
+      </details>
+    </form>
+
+    <!-- 無腳本目標：單框；有腳本目標：雙框 -->
+    <div class="outputs" id="outputs">
+      <section class="output">
+        <div class="output-head">
+          <strong>items.lua 道具定義</strong>
+          <div class="actions">
+            <div class="format-toggle" role="group" aria-label="定義顯示格式">
+              <button class="button" type="button" data-format="single" aria-pressed="true">單行顯示</button>
+              <button class="button" type="button" data-format="expanded" aria-pressed="false">展開顯示</button>
+            </div>
+            <button class="button" type="button" data-copy="itemOutput">複製定義</button>
+          </div>
+        </div>
+        <textarea id="itemOutput" readonly spellcheck="false" aria-label="items.lua 道具定義"></textarea>
+      </section>
+
+      <section class="output" id="clientSection" hidden>
+        <div class="output-head">
+          <strong>client.lua 腳本登記</strong>
+          <button class="button" type="button" data-copy="clientOutput">複製腳本</button>
+        </div>
+        <textarea id="clientOutput" readonly spellcheck="false" aria-label="client.lua 腳本登記"></textarea>
+      </section>
+    </div>
+
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <p class="footnote">使用時間以秒輸入、毫秒輸出；狀態輸出值依「輸入百分比 × 狀態值最大值 ÷ 100」計算並四捨五入成整數。此頁只產生程式碼文字，不會自動修改遊戲檔案。</p>
+  </section>
+</main>
+
+<script>
+(() => {
+  const form = document.querySelector('#itemForm');
+  const field = name => form.elements.namedItem(name);
+  const statusNames = ['hunger','thirst','drunk','stress','crystal','poison','bug','fire','water','stone','wind','energy'];
+  const itemOutput = document.querySelector('#itemOutput');
+  const clientOutput = document.querySelector('#clientOutput');
+  const clientSection = document.querySelector('#clientSection');
+  const outputs = document.querySelector('#outputs');
+
+  let format = 'single';
+
+  const luaString = value => `'${String(value).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r\n|\r|\n/g,'\\n')}'`;
+  const value = name => String(field(name).value ?? '').trim();
+  const selected = name => form.querySelector(`input[name="${name}"]:checked`)?.value;
+
+  function generate() {
+    const name = value('name');
+    const label = value('label');
+    const goalText = value('goal');
+    const anim = selected('anim') || '';
+    const hasClient = goalText !== '';
+
+    clientSection.hidden = !hasClient;
+    outputs.classList.toggle('has-client', hasClient);
+
+    document.querySelectorAll('[data-format]').forEach(button =>
+      button.setAttribute('aria-pressed', String(button.dataset.format === format))
+    );
+
+    const validName = /^[A-Za-z0-9_-]+$/.test(name);
+    const badPercent = statusNames.some(key =>
+      value(key) !== '' &&
+      (!Number.isFinite(Number(value(key))) || Number(value(key)) < 0 || Number(value(key)) > 100)
+    );
+    const badMax = value('statusMax') !== '' &&
+      (!Number.isFinite(Number(value('statusMax'))) || Number(value('statusMax')) < 0);
+    const badTime = value('usetime') !== '' &&
+      (!Number.isFinite(Number(value('usetime'))) || Number(value('usetime')) < 0);
+
+    if (!validName || !label || badPercent || badMax || badTime) {
+      itemOutput.value = badPercent ? '狀態百分比需介於 0 到 100。'
+        : badMax ? '狀態值最大值需為 0 或正數。'
+        : badTime ? '使用時間需為 0 或正數。'
+        : validName ? '請輸入道具顯示名稱。'
+        : '請輸入有效的道具名稱（僅限英文字母、數字、底線與連字號）。';
+      clientOutput.value = '';
+      return;
+    }
+
+    const properties = [
+      `label = ${luaString(label)}`,
+      `weight = ${value('weight') || '0'}`,
+      `stack = ${selected('stack') === 'true' ? 'true' : 'false'}`,
+      `close = ${selected('close') === 'true' ? 'true' : 'false'}`
+    ];
+
+    if (value('consume') !== '') properties.push(`consume = ${value('consume')}`);
+    if (anim) properties.push(`anim = ${luaString(anim)}`);
+    if (value('description')) properties.push(`description = ${luaString(value('description'))}`);
+
+    const client = [];
+    if (value('event')) client.push(`event = ${luaString(value('event'))}`);
+
+    const maximum = value('statusMax') === '' ? 1000000 : Number(value('statusMax'));
+    const statuses = statusNames.filter(key => value(key) !== '')
+      .map(key => `${key} = ${Math.round(Number(value(key)) * maximum / 100)}`);
+
+    if (statuses.length) client.push(`status = { ${statuses.join(', ')} }`);
+
+    if (value('usetime') !== '') {
+      const milliseconds = Math.round(Number(value('usetime')) * 1000);
+      client.push(`usetime = ${milliseconds}`);
+    }
+
+    if (client.length) {
+      properties.push(format === 'single'
+        ? `client = { ${client.join(', ')} }`
+        : `client = {\n${client.map(entry => `        ${entry}`).join(',\n')}\n    }`);
+    }
+
+    itemOutput.value = format === 'single'
+      ? `['${name}'] = { ${properties.join(', ')} },`
+      : `['${name}'] = {\n${properties.map(entry => `    ${entry}`).join(',\n')}\n},`;
+
+    if (hasClient) {
+      const goal = goalText.split(/\r\n|\r|\n/)
+        .filter(line => line.trim())
+        .map(line => `    -- 目標：${line}`);
+
+      clientOutput.value = [
+        `Item('${name}', function(data, slot)`,
+        ...goal,
+        '    -- TODO：請依照以上目標實作使用效果。',
+        'end)'
+      ].join('\n');
+    } else {
+      clientOutput.value = '';
+    }
+  }
+
+  form.addEventListener('input', generate);
+  form.addEventListener('change', generate);
+
+  document.querySelectorAll('[data-format]').forEach(button =>
+    button.addEventListener('click', () => {
+      format = button.dataset.format;
+      generate();
+    })
+  );
+
+  document.querySelectorAll('[data-copy]').forEach(button =>
+    button.addEventListener('click', async () => {
+      const output = document.querySelector(`#${button.dataset.copy}`);
+      try {
+        await navigator.clipboard.writeText(output.value);
+      } catch {
+        output.focus();
+        output.select();
+        document.execCommand('copy');
+      }
+
+      const feedback = document.querySelector('#feedback');
+      feedback.textContent = button.dataset.copy === 'itemOutput'
+        ? 'items.lua 定義已複製。'
+        : 'client.lua 腳本已複製。';
+
+      window.setTimeout(() => { feedback.textContent = ''; }, 2200);
+    })
+  );
+
+  generate();
+})();
+</script>
+</body>
+</html>
