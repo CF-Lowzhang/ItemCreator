@@ -94,12 +94,14 @@ h1{
   outline:2px solid #69b79a;
   outline-offset:1px
 }
-.item-name{grid-column:span 3}
+.item-name,.item-member-type,.item-member-number{grid-column:span 3}
+.item-english{grid-column:1/span 3}
 .item-label{grid-column:span 3}
 .item-weight{grid-column:span 2}
 .item-consume{grid-column:span 2}
 .item-time{grid-column:span 2}
 .item-description,.item-goal{grid-column:1/-1}
+.item-goal{margin-top:12px}
 
 /* 摺疊區塊 */
 .collapse-panel{
@@ -219,6 +221,15 @@ h1{
   margin-top:12px
 }
 .status-fields .field input{max-width:100%}
+.status-panel{margin-top:12px;border:1px solid #303e4d;border-radius:9px;background:#151d26;overflow:hidden}
+.status-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-right:15px}
+.status-toggle{display:flex;align-items:center;gap:10px;flex:1;min-width:0;padding:clamp(12px,1vw,17px) 15px;border:0;background:transparent;color:#dce9f7;text-align:left;font:inherit;font-size:clamp(15px,1.05vw,19px);font-weight:600;cursor:pointer}
+.status-toggle::before{content:"";width:8px;height:8px;flex-shrink:0;border-right:2px solid #92a8c0;border-bottom:2px solid #92a8c0;transform:rotate(-45deg);transition:transform .15s}
+.status-panel.open .status-toggle::before{transform:rotate(45deg)}
+.status-toggle:hover{background:#202b38}
+.status-toggle .collapse-hint{font-weight:400}
+.status-panel .status-heading{justify-content:flex-end}
+.status-panel .collapse-content[hidden]{display:none}
 
 /* Lua 輸出：一律上下排列 */
 .outputs{
@@ -294,7 +305,7 @@ h1{
 
 /* 中型桌面 */
 @media(max-width:1100px){
-  .item-name,.item-label{grid-column:span 4}
+  .item-name,.item-member-type,.item-member-number,.item-english,.item-label{grid-column:span 4}
   .item-weight,.item-consume,.item-time{grid-column:span 4}
   .item-stack,.item-close{grid-column:span 3}
   .item-animation,.item-event{grid-column:span 6}
@@ -303,7 +314,7 @@ h1{
 
 /* 平板 */
 @media(max-width:800px){
-  .item-name,.item-label,.item-weight,
+  .item-name,.item-member-type,.item-member-number,.item-english,.item-label,.item-weight,
   .item-consume,.item-time{grid-column:span 6}
   .extra-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
   .item-stack,.item-close,.item-animation,.item-event{grid-column:span 1}
@@ -318,7 +329,7 @@ h1{
   }
   .panel{padding:14px}
   .fields,.extra-fields{gap:10px}
-  .item-name,.item-label,.item-weight,
+  .item-name,.item-member-type,.item-member-number,.item-english,.item-label,.item-weight,
   .item-consume,.item-time{grid-column:1/-1}
   .extra-fields{grid-template-columns:minmax(0,1fr)}
   .item-stack,.item-close,.item-animation,.item-event{grid-column:1/-1}
@@ -345,13 +356,28 @@ h1{
     <form id="itemForm" autocomplete="off">
       <div class="fields">
         <label class="field item-name">
-          道具名稱（name）
-          <input name="name" required pattern="[A-Za-z0-9_-]+" placeholder="cft0001-1">
+          企劃名稱
+          <input name="projectName" required value="pxz2" maxlength="16" placeholder="pxz2">
+        </label>
+
+        <label class="field item-member-type">
+          會員類別
+          <select name="memberType"><option value="s">演員（S）</option><option value="t" selected>團隊（T）</option></select>
+        </label>
+
+        <label class="field item-member-number">
+          會員編號
+          <input name="memberNumber" required type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" value="0001" placeholder="0001">
+        </label>
+
+        <label class="field item-english">
+          物品英文
+          <input name="itemEnglish" required pattern="[A-Za-z0-9_-]+" value="bear" placeholder="bear">
         </label>
 
         <label class="field item-label">
           顯示名稱（label）
-          <input name="label" required placeholder="例如 豐饒牌精品嫩草">
+          <input name="label" required placeholder="豐饒牌精品嫩草">
         </label>
 
         <label class="field item-weight">
@@ -374,10 +400,6 @@ h1{
           <textarea name="description" rows="1" data-autoheight placeholder="道具描述"></textarea>
         </label>
 
-        <label class="field item-goal">
-          腳本希望達到的事情
-          <textarea name="goal" rows="1" data-autoheight placeholder="輸入內容後，自動產生 client.lua 使用登記"></textarea>
-        </label>
       </div>
 
       <!-- 額外調整：預設收合 -->
@@ -418,25 +440,25 @@ h1{
               Client Event（可留空）
               <input name="event" placeholder="例如 CF_VehicleKey:LockUnlock">
             </label>
+
+            <label class="field item-goal">
+              腳本希望達到的事情
+              <textarea name="goal" rows="1" data-autoheight placeholder="輸入內容後，自動產生 client.lua 使用登記"></textarea>
+            </label>
           </div>
         </div>
       </details>
 
-      <!-- 狀態變化：預設收合 -->
-      <details class="collapse-panel">
-        <summary>
-          狀態變化
-          <span class="collapse-hint">輸入 0–100%；留空代表不輸出該狀態。</span>
-        </summary>
-
-        <div class="collapse-content">
-          <div class="status-heading">
-            <label class="status-max">
-              狀態值最大值
-              <input name="statusMax" type="number" min="0" step="any" value="1000000">
-            </label>
-          </div>
-
+      <!-- 狀態變化：數值最大值常駐標題列，狀態輸入預設收合 -->
+      <section class="status-panel" id="statusPanel">
+        <div class="status-title-row">
+          <button class="status-toggle" id="statusToggle" type="button" aria-expanded="false" aria-controls="statusContent">
+            狀態變化
+            <span class="collapse-hint">輸入 0–100%；留空代表不輸出該狀態。</span>
+          </button>
+          <label class="status-max">狀態值最大值<input name="statusMax" type="number" min="0" step="any" value="1000000"></label>
+        </div>
+        <div class="collapse-content" id="statusContent" hidden>
           <div class="status-fields">
             <label class="field">飢餓（Hunger，%）<input name="hunger" type="number" min="0" max="100" step="any" placeholder="0–100"></label>
             <label class="field">口渴（Thirst，%）<input name="thirst" type="number" min="0" max="100" step="any" placeholder="0–100"></label>
@@ -452,7 +474,8 @@ h1{
             <label class="field">能量（Energy，%）<input name="energy" type="number" min="0" max="100" step="any" placeholder="0–100"></label>
           </div>
         </div>
-      </details>
+      </section>
+
     </form>
 
     <!-- items.lua 在上方，client.lua 有內容才出現在下方 -->
@@ -513,7 +536,11 @@ h1{
   }
 
   function generate() {
-    const name = value('name');
+    const projectName = value('projectName').toLowerCase();
+    const memberType = value('memberType').toLowerCase();
+    const memberNumber = value('memberNumber');
+    const itemEnglish = value('itemEnglish').toLowerCase();
+    const name = `${projectName}${memberType}${memberNumber}-${itemEnglish}`;
     const label = value('label');
     const goalText = value('goal');
     const anim = selected('anim') || '';
@@ -522,7 +549,7 @@ h1{
     clientSection.hidden = !hasClient;
     formatToggle.textContent = format === 'single' ? '單行顯示' : '展開顯示';
 
-    const validName = /^[A-Za-z0-9_-]+$/.test(name);
+    const validName = /^[a-z0-9]+$/.test(projectName) && /^[st]$/.test(memberType) && /^[0-9]{4}$/.test(memberNumber) && /^[a-z0-9_-]+$/.test(itemEnglish);
     const badPercent = statusNames.some(key =>
       value(key) !== '' &&
       (!Number.isFinite(Number(value(key))) || Number(value(key)) < 0 || Number(value(key)) > 100)
@@ -537,7 +564,7 @@ h1{
         : badMax ? '狀態值最大值需為 0 或正數。'
         : badTime ? '使用時間需為 0 或正數。'
         : validName ? '請輸入道具顯示名稱。'
-        : '請輸入有效的道具名稱（僅限英文字母、數字、底線與連字號）。';
+        : '企劃名稱需為英數字、會員編號需為四位數，物品英文限英數字、底線或連字號。';
       clientOutput.value = '';
       updateHeights();
       return;
@@ -597,6 +624,16 @@ h1{
 
   form.addEventListener('input', generate);
   form.addEventListener('change', generate);
+
+  const statusToggle = document.querySelector('#statusToggle');
+  const statusContent = document.querySelector('#statusContent');
+  statusToggle.addEventListener('click', () => {
+    const isOpen = statusContent.hidden;
+    statusContent.hidden = !isOpen;
+    statusToggle.setAttribute('aria-expanded', String(isOpen));
+    document.querySelector('#statusPanel').classList.toggle('open', isOpen);
+    updateHeights();
+  });
 
   document.querySelectorAll('[data-autoheight]').forEach(element => {
     element.addEventListener('input', () => autoHeight(element));
