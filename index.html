@@ -5,28 +5,95 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#11161d">
+<meta name="description" content="ox_inventory 道具建立器">
 <title>ox_inventory 道具建立器</title>
 <style>
-:root{font-family:Inter,"Segoe UI","Noto Sans TC",sans-serif;color:#e8edf4;background:#11161d;font-synthesis:none}
+:root{
+  font-family:Inter,"Segoe UI","Noto Sans TC",sans-serif;
+  font-size:clamp(15px,1.05vw,19px);
+  color:#e8edf4;
+  background:#11161d;
+  font-synthesis:none
+}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% -10%,#27334a 0,transparent 42%),#11161d}
-main{width:min(1280px,calc(100% - 32px));margin:auto;padding:24px 0 36px}
+body{
+  margin:0;
+  min-height:100vh;
+  background:radial-gradient(ellipse at 75% -10%,#27334a 0,transparent 42%),#11161d
+}
+main{
+  width:min(100% - 24px,1440px);
+  margin-inline:auto;
+  padding:24px 0 36px
+}
 header{margin-bottom:16px}
-.eyebrow{font-size:10px;letter-spacing:.16em;color:#93a7c0}
-h1{margin:5px 0;font-size:25px;letter-spacing:-.04em}
-.intro{margin:0;color:#98a5b5;font-size:12px;line-height:1.5}
-.panel{padding:17px;border:1px solid #2b3542;border-radius:12px;background:#171d25}
-.section-title{margin:0 0 12px;color:#e3ebf5;font-size:14px}
+.eyebrow{
+  font-size:clamp(12px,.85vw,15px);
+  letter-spacing:.16em;
+  color:#93a7c0
+}
+h1{
+  margin:5px 0;
+  font-size:clamp(26px,2vw,36px);
+  letter-spacing:-.04em
+}
+.intro{
+  margin:0;
+  color:#98a5b5;
+  font-size:clamp(14px,1vw,18px);
+  line-height:1.65
+}
+.panel{
+  padding:clamp(14px,1.4vw,25px);
+  border:1px solid #2b3542;
+  border-radius:12px;
+  background:#171d25
+}
+.section-title{
+  margin:0 0 12px;
+  color:#e3ebf5;
+  font-size:clamp(16px,1.15vw,21px)
+}
 
 /* 道具資料 */
-.fields{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px;align-items:end}
-.field{display:grid;align-content:start;gap:5px;min-width:0;color:#aab8c8;font-size:11px}
-.field input,.field textarea,.field select,.status-max input{
-  width:100%;min-width:0;border:1px solid #3c4959;
-  background:#111820;color:#f0f4f8;
-  padding:7px 9px;border-radius:6px;font:inherit;font-size:12px
+.fields{
+  display:grid;
+  grid-template-columns:repeat(12,minmax(0,1fr));
+  gap:clamp(10px,.9vw,15px);
+  align-items:end
 }
-.field textarea{resize:vertical}
+.field{
+  display:grid;
+  align-content:start;
+  gap:7px;
+  min-width:0;
+  color:#aab8c8;
+  font-size:clamp(13px,.95vw,17px)
+}
+.field input,.field textarea,.field select,.status-max input{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+  border:1px solid #3c4959;
+  background:#111820;
+  color:#f0f4f8;
+  padding:clamp(9px,.75vw,13px) 11px;
+  border-radius:6px;
+  font:inherit;
+  font-size:clamp(14px,1vw,18px)
+}
+.field textarea{
+  resize:none;
+  overflow:hidden;
+  min-height:0;
+  line-height:1.5;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere
+}
+.field input:focus,.field textarea:focus,.status-max input:focus{
+  outline:2px solid #69b79a;
+  outline-offset:1px
+}
 .item-name{grid-column:span 3}
 .item-label{grid-column:span 3}
 .item-weight{grid-column:span 2}
@@ -34,41 +101,61 @@ h1{margin:5px 0;font-size:25px;letter-spacing:-.04em}
 .item-time{grid-column:span 2}
 .item-description,.item-goal{grid-column:1/-1}
 
-/* 折疊區塊 */
+/* 摺疊區塊 */
 .collapse-panel{
-  margin-top:10px;border:1px solid #303e4d;
-  border-radius:9px;background:#151d26;overflow:hidden
+  margin-top:12px;
+  border:1px solid #303e4d;
+  border-radius:9px;
+  background:#151d26;
+  overflow:hidden
 }
 .collapse-panel summary{
-  display:flex;align-items:center;gap:10px;
-  padding:11px 13px;color:#dce9f7;
-  font-size:13px;font-weight:600;cursor:pointer;
-  list-style:none;user-select:none
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:clamp(12px,1vw,17px) 15px;
+  color:#dce9f7;
+  font-size:clamp(15px,1.05vw,19px);
+  font-weight:600;
+  cursor:pointer;
+  list-style:none;
+  user-select:none
 }
 .collapse-panel summary::-webkit-details-marker{display:none}
 .collapse-panel summary:hover{background:#202b38}
 .collapse-panel summary::before{
-  content:"";width:7px;height:7px;flex-shrink:0;
+  content:"";
+  width:8px;
+  height:8px;
+  flex-shrink:0;
   border-right:2px solid #92a8c0;
   border-bottom:2px solid #92a8c0;
-  transform:rotate(-45deg);transition:transform .15s
+  transform:rotate(-45deg);
+  transition:transform .15s
 }
 .collapse-panel[open] summary::before{transform:rotate(45deg)}
-.collapse-hint{color:#8493a4;font-size:11px;font-weight:400}
-.collapse-content{padding:12px;border-top:1px solid #303e4d}
+.collapse-hint{
+  color:#8493a4;
+  font-size:clamp(12px,.85vw,15px);
+  font-weight:400
+}
+.collapse-content{
+  padding:clamp(12px,1vw,18px);
+  border-top:1px solid #303e4d
+}
 
 /* 額外調整 */
 .extra-fields{
   display:grid;
   grid-template-columns:repeat(12,minmax(0,1fr));
   align-items:end;
-  gap:10px
+  gap:clamp(10px,.9vw,15px)
 }
 .item-stack,.item-close{grid-column:span 2}
 .item-animation{grid-column:span 3}
-.item-event{grid-column:span 3}
+.item-event{grid-column:span 5}
 
-/* 單選式按鈕：可堆疊、道具欄、動畫 */
+/* 單選按鈕 */
 .choice-options{
   display:inline-flex;
   align-items:stretch;
@@ -84,10 +171,10 @@ h1{margin:5px 0;font-size:25px;letter-spacing:-.04em}
   display:flex;
   align-items:center;
   justify-content:center;
-  min-width:54px;
-  padding:8px 10px;
+  min-width:clamp(56px,4vw,72px);
+  padding:clamp(9px,.75vw,13px) 12px;
   color:#b9c9d9;
-  font-size:11px;
+  font-size:clamp(13px,.9vw,16px);
   cursor:pointer;
   white-space:nowrap
 }
@@ -121,26 +208,25 @@ h1{margin:5px 0;font-size:25px;letter-spacing:-.04em}
   align-items:center;
   gap:8px;
   color:#aab8c8;
-  font-size:11px;
+  font-size:clamp(13px,.9vw,16px);
   white-space:nowrap
 }
-.status-max input{width:115px}
+.status-max input{width:clamp(115px,9vw,155px)}
 .status-fields{
   display:grid;
   grid-template-columns:repeat(6,minmax(0,1fr));
-  gap:9px;
-  margin-top:11px
+  gap:clamp(9px,.85vw,14px);
+  margin-top:12px
 }
 .status-fields .field input{max-width:100%}
 
-/* 輸出 */
+/* Lua 輸出：一律上下排列 */
 .outputs{
   display:grid;
-  grid-template-columns:1fr;
-  gap:12px;
-  margin-top:15px
+  grid-template-columns:minmax(0,1fr);
+  gap:14px;
+  margin-top:16px
 }
-.outputs.has-client{grid-template-columns:repeat(2,minmax(0,1fr))}
 .output{min-width:0}
 .output[hidden]{display:none}
 .output-head{
@@ -148,103 +234,107 @@ h1{margin:5px 0;font-size:25px;letter-spacing:-.04em}
   align-items:center;
   justify-content:space-between;
   gap:8px;
-  min-height:35px;
-  margin-bottom:6px;
+  min-height:40px;
+  margin-bottom:7px;
   color:#dce9f7;
-  font-size:12px
+  font-size:clamp(14px,1vw,18px)
 }
-.actions{display:flex;align-items:center;gap:6px}
-.format-toggle{
+.actions{
   display:flex;
-  gap:3px;
-  padding:3px;
-  border:1px solid #354252;
-  border-radius:7px;
-  background:#111820
+  align-items:center;
+  gap:7px;
+  flex-wrap:wrap
 }
 .button{
   border:1px solid #426c62;
   border-radius:6px;
   background:#16332e;
   color:#a8ead2;
-  padding:6px 9px;
+  padding:9px 12px;
   font:inherit;
-  font-size:11px;
+  font-size:clamp(13px,.9vw,16px);
   white-space:nowrap;
   cursor:pointer
 }
-.format-toggle button{
-  border:0;
-  background:transparent;
-  color:#9daabd;
-  padding:5px 7px
-}
-.format-toggle button[aria-pressed="true"]{
-  border-radius:5px;
-  background:#2a4057;
-  color:#eff6ff
-}
 .button:hover{filter:brightness(1.15)}
+.format-button{
+  border-color:#354c6a;
+  background:#26384f;
+  color:#e2efff
+}
 .output textarea{
   display:block;
   width:100%;
-  min-height:230px;
-  resize:vertical;
+  height:auto;
+  min-height:0;
+  resize:none;
+  overflow:hidden;
   border:1px solid #303e4d;
   border-radius:8px;
   background:#10151b;
   color:#dce9f7;
-  padding:11px;
-  font:12px/1.6 ui-monospace,Consolas,monospace;
-  white-space:pre;
+  padding:12px;
+  font:clamp(13px,.95vw,17px)/1.7 ui-monospace,Consolas,monospace;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
   tab-size:4
 }
-.feedback{min-height:17px;margin-top:7px;color:#9be0c5;font-size:11px}
+.feedback{
+  min-height:20px;
+  margin-top:8px;
+  color:#9be0c5;
+  font-size:clamp(12px,.85vw,15px)
+}
 .footnote{
-  margin:9px 2px 0;
+  margin:10px 2px 0;
   color:#78889b;
-  font-size:11px;
+  font-size:clamp(12px,.85vw,15px);
   line-height:1.5
 }
 
-/* RWD */
-@media(max-width:1000px){
+/* 中型桌面 */
+@media(max-width:1100px){
   .item-name,.item-label{grid-column:span 4}
   .item-weight,.item-consume,.item-time{grid-column:span 4}
   .item-stack,.item-close{grid-column:span 3}
   .item-animation,.item-event{grid-column:span 6}
   .status-fields{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
-@media(max-width:760px){
-  .item-name,.item-label,.item-weight,.item-consume,.item-time{
-    grid-column:span 6
-  }
-  .item-stack,.item-close{grid-column:span 3}
-  .item-animation,.item-event{grid-column:span 6}
+
+/* 平板 */
+@media(max-width:800px){
+  .item-name,.item-label,.item-weight,
+  .item-consume,.item-time{grid-column:span 6}
+  .extra-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .item-stack,.item-close,.item-animation,.item-event{grid-column:span 1}
   .status-fields{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .outputs.has-client{grid-template-columns:1fr}
 }
-@media(max-width:520px){
-  main{width:calc(100% - 20px);padding-top:18px}
-  .panel{padding:12px}
-  .fields{gap:9px}
-  .item-name,.item-label,.item-weight,.item-consume,.item-time{
-    grid-column:1/-1
+
+/* 手機 */
+@media(max-width:560px){
+  main{
+    width:calc(100% - 16px);
+    padding-top:16px
   }
-  .item-stack,.item-close{grid-column:span 6}
-  .item-animation,.item-event{grid-column:1/-1}
+  .panel{padding:14px}
+  .fields,.extra-fields{gap:10px}
+  .item-name,.item-label,.item-weight,
+  .item-consume,.item-time{grid-column:1/-1}
+  .extra-fields{grid-template-columns:minmax(0,1fr)}
+  .item-stack,.item-close,.item-animation,.item-event{grid-column:1/-1}
   .status-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
   .status-max{width:100%;justify-content:space-between}
-  .status-max input{width:110px}
-  .output-head{align-items:flex-start;flex-direction:column}
-  .actions{width:100%;justify-content:space-between}
+  .status-max input{width:120px}
+  .collapse-panel summary{padding:12px}
+  .collapse-hint{line-height:1.5}
+  .output-head{align-items:flex-start;flex-wrap:wrap}
+  .actions{flex-wrap:wrap}
 }
 </style>
 </head>
 <body>
 <main>
   <header>
-    <div class="eyebrow">OX INVENTORY TOOL</div>
     <h1>道具建立器</h1>
     <p class="intro">填好道具資料，產生讓道具系統可以處理的 <code>items.lua</code> 和 <code>client.lua</code> 相關程式，並且貼給「相關團隊進行處理」</p>
   </header>
@@ -254,36 +344,39 @@ h1{margin:5px 0;font-size:25px;letter-spacing:-.04em}
 
     <form id="itemForm" autocomplete="off">
       <div class="fields">
-
-        <!-- 第一行 -->
-        <label class="field item-name">道具名稱（name）
+        <label class="field item-name">
+          道具名稱（name）
           <input name="name" required pattern="[A-Za-z0-9_-]+" placeholder="cft0001-1">
         </label>
 
-        <label class="field item-label">顯示名稱（label）
-          <input name="label" required placeholder="豐饒牌精品嫩草">
+        <label class="field item-label">
+          顯示名稱（label）
+          <input name="label" required placeholder="例如 豐饒牌精品嫩草">
         </label>
 
-        <label class="field item-weight">重量（weight）
+        <label class="field item-weight">
+          重量（weight）
           <input name="weight" type="number" min="0" step="any" value="0">
         </label>
 
-        <label class="field item-consume">消耗量（consume）
+        <label class="field item-consume">
+          消耗量（consume）
           <input name="consume" type="number" min="0" step="any" value="0">
         </label>
 
-        <label class="field item-time">使用時間（usetime，秒）
+        <label class="field item-time">
+          使用時間（usetime，秒）
           <input name="usetime" type="number" min="0" step="any" value="0">
         </label>
 
-        <!-- 第二行 -->
-        <label class="field item-description">描述（description）
-          <textarea name="description" rows="2" placeholder="道具描述"></textarea>
+        <label class="field item-description">
+          描述（description）
+          <textarea name="description" rows="1" data-autoheight placeholder="道具描述"></textarea>
         </label>
 
-        <!-- 第三行 -->
-        <label class="field item-goal">腳本希望達到的事情
-          <textarea name="goal" rows="2" placeholder="輸入內容後，自動產生 client.lua 使用登記"></textarea>
+        <label class="field item-goal">
+          腳本希望達到的事情
+          <textarea name="goal" rows="1" data-autoheight placeholder="輸入內容後，自動產生 client.lua 使用登記"></textarea>
         </label>
       </div>
 
@@ -296,7 +389,6 @@ h1{margin:5px 0;font-size:25px;letter-spacing:-.04em}
 
         <div class="collapse-content">
           <div class="extra-fields">
-
             <div class="field item-stack">
               <span>可堆疊（stack）</span>
               <div class="choice-options" role="radiogroup" aria-label="可堆疊">
@@ -322,10 +414,10 @@ h1{margin:5px 0;font-size:25px;letter-spacing:-.04em}
               </div>
             </div>
 
-            <label class="field item-event">Client Event（可留空）
+            <label class="field item-event">
+              Client Event（可留空）
               <input name="event" placeholder="例如 CF_VehicleKey:LockUnlock">
             </label>
-
           </div>
         </div>
       </details>
@@ -363,20 +455,17 @@ h1{margin:5px 0;font-size:25px;letter-spacing:-.04em}
       </details>
     </form>
 
-    <!-- 無腳本目標：單框；有腳本目標：雙框 -->
+    <!-- items.lua 在上方，client.lua 有內容才出現在下方 -->
     <div class="outputs" id="outputs">
       <section class="output">
         <div class="output-head">
           <strong>items.lua 道具定義</strong>
           <div class="actions">
-            <div class="format-toggle" role="group" aria-label="定義顯示格式">
-              <button class="button" type="button" data-format="single" aria-pressed="true">單行顯示</button>
-              <button class="button" type="button" data-format="expanded" aria-pressed="false">展開顯示</button>
-            </div>
+            <button class="button format-button" type="button" id="formatToggle" aria-label="切換 Lua 顯示格式">單行顯示</button>
             <button class="button" type="button" data-copy="itemOutput">複製定義</button>
           </div>
         </div>
-        <textarea id="itemOutput" readonly spellcheck="false" aria-label="items.lua 道具定義"></textarea>
+        <textarea id="itemOutput" readonly rows="1" data-autoheight spellcheck="false" aria-label="items.lua 道具定義"></textarea>
       </section>
 
       <section class="output" id="clientSection" hidden>
@@ -384,12 +473,15 @@ h1{margin:5px 0;font-size:25px;letter-spacing:-.04em}
           <strong>client.lua 腳本登記</strong>
           <button class="button" type="button" data-copy="clientOutput">複製腳本</button>
         </div>
-        <textarea id="clientOutput" readonly spellcheck="false" aria-label="client.lua 腳本登記"></textarea>
+        <textarea id="clientOutput" readonly rows="1" data-autoheight spellcheck="false" aria-label="client.lua 腳本登記"></textarea>
       </section>
     </div>
 
     <div class="feedback" id="feedback" aria-live="polite"></div>
-    <p class="footnote">使用時間以秒輸入、毫秒輸出；狀態輸出值依「輸入百分比 × 狀態值最大值 ÷ 100」計算並四捨五入成整數。此頁只產生程式碼文字，不會自動修改遊戲檔案。</p>
+    <p class="footnote">
+      使用時間以秒輸入、毫秒輸出；狀態輸出值依「輸入百分比 × 狀態值最大值 ÷ 100」計算並四捨五入成整數。
+      此頁只產生程式碼文字，不會自動修改遊戲檔案。
+    </p>
   </section>
 </main>
 
@@ -398,16 +490,27 @@ h1{margin:5px 0;font-size:25px;letter-spacing:-.04em}
   const form = document.querySelector('#itemForm');
   const field = name => form.elements.namedItem(name);
   const statusNames = ['hunger','thirst','drunk','stress','crystal','poison','bug','fire','water','stone','wind','energy'];
+
   const itemOutput = document.querySelector('#itemOutput');
   const clientOutput = document.querySelector('#clientOutput');
   const clientSection = document.querySelector('#clientSection');
-  const outputs = document.querySelector('#outputs');
+  const formatToggle = document.querySelector('#formatToggle');
 
   let format = 'single';
 
   const luaString = value => `'${String(value).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r\n|\r|\n/g,'\\n')}'`;
   const value = name => String(field(name).value ?? '').trim();
   const selected = name => form.querySelector(`input[name="${name}"]:checked`)?.value;
+
+  function autoHeight(element) {
+    if (!element || element.offsetParent === null) return;
+    element.style.height = 'auto';
+    element.style.height = `${element.scrollHeight + 2}px`;
+  }
+
+  function updateHeights() {
+    document.querySelectorAll('textarea[data-autoheight]').forEach(autoHeight);
+  }
 
   function generate() {
     const name = value('name');
@@ -417,11 +520,7 @@ h1{margin:5px 0;font-size:25px;letter-spacing:-.04em}
     const hasClient = goalText !== '';
 
     clientSection.hidden = !hasClient;
-    outputs.classList.toggle('has-client', hasClient);
-
-    document.querySelectorAll('[data-format]').forEach(button =>
-      button.setAttribute('aria-pressed', String(button.dataset.format === format))
-    );
+    formatToggle.textContent = format === 'single' ? '單行顯示' : '展開顯示';
 
     const validName = /^[A-Za-z0-9_-]+$/.test(name);
     const badPercent = statusNames.some(key =>
@@ -440,6 +539,7 @@ h1{margin:5px 0;font-size:25px;letter-spacing:-.04em}
         : validName ? '請輸入道具顯示名稱。'
         : '請輸入有效的道具名稱（僅限英文字母、數字、底線與連字號）。';
       clientOutput.value = '';
+      updateHeights();
       return;
     }
 
@@ -482,7 +582,6 @@ h1{margin:5px 0;font-size:25px;letter-spacing:-.04em}
       const goal = goalText.split(/\r\n|\r|\n/)
         .filter(line => line.trim())
         .map(line => `    -- 目標：${line}`);
-
       clientOutput.value = [
         `Item('${name}', function(data, slot)`,
         ...goal,
@@ -492,17 +591,21 @@ h1{margin:5px 0;font-size:25px;letter-spacing:-.04em}
     } else {
       clientOutput.value = '';
     }
+
+    updateHeights();
   }
 
   form.addEventListener('input', generate);
   form.addEventListener('change', generate);
 
-  document.querySelectorAll('[data-format]').forEach(button =>
-    button.addEventListener('click', () => {
-      format = button.dataset.format;
-      generate();
-    })
-  );
+  document.querySelectorAll('[data-autoheight]').forEach(element => {
+    element.addEventListener('input', () => autoHeight(element));
+  });
+
+  formatToggle.addEventListener('click', () => {
+    format = format === 'single' ? 'expanded' : 'single';
+    generate();
+  });
 
   document.querySelectorAll('[data-copy]').forEach(button =>
     button.addEventListener('click', async () => {
@@ -520,10 +623,13 @@ h1{margin:5px 0;font-size:25px;letter-spacing:-.04em}
         ? 'items.lua 定義已複製。'
         : 'client.lua 腳本已複製。';
 
-      window.setTimeout(() => { feedback.textContent = ''; }, 2200);
+      window.setTimeout(() => {
+        feedback.textContent = '';
+      }, 2200);
     })
   );
 
+  window.addEventListener('resize', updateHeights);
   generate();
 })();
 </script>
